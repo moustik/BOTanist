@@ -14,5 +14,13 @@ conan_cmake_run(CONANFILE conanfile.txt
                 BASIC_SETUP CMAKE_TARGETS
                 BUILD missing)
 
-add_executable(botanist main.cpp)
-target_link_libraries(botanist ${CONAN_LIBS})
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall")
+set(Boost_USE_MULTITHREADED ON)
+
+include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
+conan_basic_setup()
+
+add_subdirectory(lib/tgbot-cpp)
+add_executable(botanist src/main.cpp)
+
+target_link_libraries(botanist TgBot ${CONAN_LIBS})
