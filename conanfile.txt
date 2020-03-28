@@ -1,8 +1,10 @@
 [requires]
 boost/1.71.0@conan/stable
-zlib/1.2.11
+zlib/1.2.11@conan/stable
 openssl/1.1.1d
 libcurl/7.68.0
+fmt/6.0.0@bincrafters/stable
+jsonformoderncpp/3.7.3@vthiery/stable
 
 [options]
 boost:shared=True

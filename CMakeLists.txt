@@ -1,6 +1,8 @@
 project(botanist)
 cmake_minimum_required(VERSION 3.1.2)
-add_definitions("-std=c++11")
+
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+add_definitions("-std=c++17")
 
 # Download automatically, you can also just copy the conan.cmake file
 if(NOT EXISTS "${CMAKE_BINARY_DIR}/conan.cmake")
@@ -22,5 +24,6 @@ conan_basic_setup()
 
 add_subdirectory(lib/tgbot-cpp)
 add_executable(botanist src/main.cpp)
+set_property(TARGET botanist PROPERTY CXX_STANDARD 17)
 
 target_link_libraries(botanist TgBot ${CONAN_LIBS})
