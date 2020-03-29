@@ -1,0 +1,27 @@
+name: C/C++ CI
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: true
+    - name: make build space
+      run: mkdir build
+    - name: install conan
+      run: sudo pip install conan
+    - name: configure
+      run: cmake -DCMAKE_BUILD_TYPE=Release ..
+      working-directory: build
+    - name: build
+      run: cmake --build .
+      working-directory: build
