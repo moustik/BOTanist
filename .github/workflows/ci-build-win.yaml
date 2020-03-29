@@ -1,0 +1,42 @@
+name: C/C++ CI for win
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: true
+    - name: make build space
+      run: mkdir build
+    - name: install conan
+      run: |
+            REM We use this source (temporarily?) until choco has updated their version of conan
+            REM choco install conan -y -s="https://api.bintray.com/nuget/anotherfoxguy/choco-pkg"
+            pip install conan
+      shell: cmd
+    - name: configure
+      run: |
+          call "%programfiles(x86)%\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
+          cmake -DCMAKE_BUILD_TYPE=Release -G "Visual Studio 16 2019" -A x64 -DCMAKE_PROGRAM_PATH="%programfiles%\Conan\conan" ..
+      shell: cmd
+      working-directory: build
+    - name: build
+      run: cmake --build .
+      working-directory: build
+
+# for windows build https://github.com/Chatterino/chatterino2/blob/master/.github/workflows/build.yml
+
+#      - name: Upload artifact
+#        uses: actions/upload-artifact@v1
+#        with:
+#          name: botanist-windows-x86-64.zip
+#          path: build/botanist-windows-x86-64.zip

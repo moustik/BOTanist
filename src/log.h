@@ -1,3 +1,5 @@
+#pragma warning(disable: 4596)
+
 #include <boost/log/trivial.hpp>
 #define LOG(lvl) BOOST_LOG_TRIVIAL(lvl)
 

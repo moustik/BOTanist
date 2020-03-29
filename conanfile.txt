@@ -8,6 +8,13 @@ jsonformoderncpp/3.7.3@vthiery/stable
 
 [options]
 boost:shared=True
+fmt:shared=True
 
 [generators]
+txt
 cmake
+
+[imports]
+., cacert.pem -> ./bin
+
+# https://github.com/whoshuu/cpr
