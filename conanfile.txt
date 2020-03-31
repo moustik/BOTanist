@@ -7,7 +7,7 @@ fmt/6.0.0@bincrafters/stable
 jsonformoderncpp/3.7.3@vthiery/stable
 
 [options]
-boost:shared=True
+#boost:shared=True
 fmt:shared=True
 
 [generators]
@@ -16,5 +16,7 @@ cmake
 
 [imports]
 ., cacert.pem -> ./bin
+bin, *.dll -> ./bin
+lib, *.so* -> ./lib
 
 # https://github.com/whoshuu/cpr

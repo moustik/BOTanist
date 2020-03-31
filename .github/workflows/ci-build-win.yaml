@@ -35,8 +35,3 @@ jobs:
 
 # for windows build https://github.com/Chatterino/chatterino2/blob/master/.github/workflows/build.yml
 
-#      - name: Upload artifact
-#        uses: actions/upload-artifact@v1
-#        with:
-#          name: botanist-windows-x86-64.zip
-#          path: build/botanist-windows-x86-64.zip

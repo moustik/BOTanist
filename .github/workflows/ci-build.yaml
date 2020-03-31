@@ -25,3 +25,13 @@ jobs:
     - name: build
       run: cmake --build .
       working-directory: build
+    - name: package
+      run: cpack .
+      working-directory: build
+    - name: upload artifact
+      uses: actions/upload-artifact@v1
+      with:
+        name: botanist-Linux.zip
+        path: build/botanist-0.1.1-Linux.tar.gz
+
+# https://cristianadam.eu/20191222/using-github-actions-with-c-plus-plus-and-cmake/

@@ -7,21 +7,37 @@ if(NOT EXISTS "${CMAKE_BINARY_DIR}/conan.cmake")
    file(DOWNLOAD "https://raw.githubusercontent.com/conan-io/cmake-conan/v0.15/conan.cmake"
                  "${CMAKE_BINARY_DIR}/conan.cmake")
 endif()
-
 include(${CMAKE_BINARY_DIR}/conan.cmake)
+
+set(CMAKE_INSTALL_RPATH "$ORIGIN/../lib")
+set(CMAKE_BUILD_WITH_INSTALL_RPATH ON)
+
 conan_cmake_run(CONANFILE conanfile.txt
                 BASIC_SETUP CMAKE_TARGETS
                 BUILD missing)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
 set(Boost_USE_MULTITHREADED ON)
-
-include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
-conan_basic_setup()
 
 add_subdirectory(lib/tgbot-cpp)
 add_executable(botanist src/main.cpp)
+
+target_compile_options(botanist PUBLIC "-Wall")
 set_property(TARGET botanist PROPERTY CXX_STANDARD 17)
 set_property(TARGET botanist PROPERTY CXX_STANDARD_REQUIRED ON)
 
-target_link_libraries(botanist TgBot ${CONAN_LIBS})
+target_link_libraries(botanist TgBot ${CONAN_TARGETS})
+
+install(TARGETS botanist
+    RUNTIME DESTINATION bin
+    )
+
+# Bring the friend dynamic libraries
+INSTALL(
+  DIRECTORY "${CMAKE_BINARY_DIR}/lib"
+  DESTINATION "."
+)
+
+if(UNIX)  # we do package on linux only [for deployment purposes]
+    set(CPACK_GENERATOR "TGZ")
+    include(CPack)
+endif()
