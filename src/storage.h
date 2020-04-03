@@ -1,3 +1,5 @@
+#include <cstdlib>
+#include <string>
 
 enum tag_type { plant, action, value, unit, misc };
 

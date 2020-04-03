@@ -1,9 +1,7 @@
 #include <iostream>
 
-#include <csignal>
 #include <cstdio>
 #include <cstdlib>
-#include <exception>
 #include <string>
 
 #include <nlohmann/json.hpp>
@@ -16,29 +14,48 @@ using namespace TgBot;
 #include "storage.h"
 
 
-InlineKeyboardMarkup::Ptr createChoices(std::initializer_list<string> choices){
+InlineKeyboardMarkup::Ptr createChoices(
+        std::initializer_list<std::initializer_list<std::pair<std::string, std::string>>> choices
+                                        ){
     InlineKeyboardMarkup::Ptr keyboard(new InlineKeyboardMarkup);
-    vector<InlineKeyboardButton::Ptr> row0;
+    for (const auto &row: choices) {
+        vector<InlineKeyboardButton::Ptr> row0;
 
-    for (const auto &choice: choices) {
-        InlineKeyboardButton::Ptr checkButton(new InlineKeyboardButton);
-        checkButton->text = choice;
-        checkButton->callbackData = choice;
-        row0.push_back(checkButton);
+        for (const auto &choice: row) {
+          InlineKeyboardButton::Ptr checkButton(new InlineKeyboardButton);
+          checkButton->text = choice.first;
+          checkButton->callbackData = choice.second;
+          row0.push_back(checkButton);
+        }
+        keyboard->inlineKeyboard.push_back(row0);
     }
-    keyboard->inlineKeyboard.push_back(row0);
-
     return keyboard;
 }
 
-// -------------------------
+
+// ------------------------- web.h
 #include <curl/curl.h>
 
-size_t writeFunction(void *ptr, size_t size, size_t nmemb, std::string* data) {
+
+/** @fn cURLWriteFunction
+ *  @brief fonction de callback permettant a cURL d'ecrire dans une std:string
+ *
+ */
+size_t cURLWriteFunction(void *ptr, size_t size, size_t nmemb, std::string* data);
+
+/** @fn curl_get
+ *  @brief recupere la reponse d'une requete GET http
+ *  @param request_url requette HTTP formattee pour le web
+ *
+ */
+std::string curl_get(std::string request_url);
+
+
+// ------------------------- web.cpp
+size_t cURLWriteFunction(void *ptr, size_t size, size_t nmemb, std::string* data) {
     data->append((char*) ptr, size * nmemb);
     return size * nmemb;
 }
-
 
 std::string curl_get(std::string request_url){
     // from https://gist.github.com/whoshuu/2dc858b8730079602044
@@ -56,7 +73,7 @@ std::string curl_get(std::string request_url){
         curl_easy_setopt(curl, CURLOPT_MAXREDIRS, 50L);
         curl_easy_setopt(curl, CURLOPT_TCP_KEEPALIVE, 1L);
 
-        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writeFunction);
+        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, cURLWriteFunction);
         curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response_string);
         curl_easy_setopt(curl, CURLOPT_HEADERDATA, &header_string);
 
@@ -82,34 +99,35 @@ int main() {
     string token(getenv("TOKEN"));
     LOG(debug) << "Token: " << token;
 
-    InlineKeyboardMarkup::Ptr keyboard = createChoices({ "check", "new_plant", "log" });
+    InlineKeyboardMarkup::Ptr keyboard = createChoices({{ {"check", "check"}, {"new plant", "new_plant"}, {"log", "log"} }});
 
     Bot bot(token);
     bot.getEvents().onCommand("start", [&bot, &keyboard](Message::Ptr message) {
         bot.getApi().sendMessage(message->chat->id, "Hi!", false, 0, keyboard);
     });
-    bot.getEvents().onAnyMessage([&bot](Message::Ptr message) {
+    bot.getEvents().onAnyMessage([](Message::Ptr message) {
         LOG(debug) << _format("User wrote {}", message->text.c_str());
         if (StringTools::startsWith(message->text, "/start")) {
             return;
         }
 
         if (message->chat->type != TgBot::Chat::Type::Private) {
+            LOG(debug) << _format("Chat id {}", message->chat->id);
             return;
         }
         //bot.getApi().sendMessage(message->chat->id, "Your message is: " + message->text);
     });
 
-    bot.getEvents().onCommand("time", [&bot, &keyboard](Message::Ptr message) {
+    bot.getEvents().onCommand("time", [&bot](Message::Ptr message) {
                                         //  "http://worldtimeapi.org/api/timezone/Europe/Paris.txt"
                                         //  "http://worldtimeapi.org/api/timezone/Pacific/Noumea"
         std::string http_response = curl_get("http://worldtimeapi.org/api/timezone/Europe/Paris");
         auto json_data = nlohmann::json::parse(http_response);
-        std::string datetime_FR= std::string(json_data["datetime"]).substr(0,16);
+        std::string datetime_FR = std::string(json_data.value("datetime", "")).substr(0,16);
 
         http_response = curl_get("http://worldtimeapi.org/api/timezone/Pacific/Noumea");
         json_data = nlohmann::json::parse(http_response);
-        std::string datetime_NC = std::string(json_data["datetime"]).substr(0,16);
+        std::string datetime_NC = std::string(json_data.value("datetime", "")).substr(0,16);
         std::string response = _format("Il est\n {} le {}/{} en France\n {} le {}/{} en Nouvelle Calédonie",
                                        datetime_FR.substr(11), datetime_FR.substr(8, 2), datetime_FR.substr(5, 2),
                                        datetime_NC.substr(11), datetime_NC.substr(8, 2), datetime_NC.substr(5, 2));
@@ -121,16 +139,25 @@ int main() {
         bot.getApi().sendMessage(message->chat->id, response, false, 0, keyboard, "Markdown");
     });
 
-    bot.getEvents().onCommand("log", [&bot, &keyboard](Message::Ptr message) {
-        string response = "ok";
-        bot.getApi().sendMessage(message->chat->id, response, false, 0, keyboard, "Markdown");
+    bot.getEvents().onCommand("log", [&bot](Message::Ptr message) {
+        string response = "__Aujourd'hui__ j'ai __planter__ des __carottes__";
+        auto keyboard = createChoices({{{"Ce n'était pas *aujourd'hui*", "date_today"}},
+                                       {{"Je n'ai pas *planter*", "action_planter"}},
+                                       {{"Ce ne sont pas des *carottes*", "item_carottes"}},
+                                       {{"C'est tout bon !", "valid"}}
+          });
+        bot.getApi().sendMessage(message->chat->id, response, false, 0, keyboard, "MarkdownV2");
     });
 
     bot.getEvents().onCallbackQuery([&bot](CallbackQuery::Ptr query) {
         if (StringTools::startsWith(query->data, "check")) {
             bot.getApi().editMessageText("YES!", query->message->chat->id, query->message->messageId, "",
-                                         "Markdown", false, createChoices({ "checked", "new_plant", "log" }));
+                                         "Markdown", false,
+                                         createChoices({{ {"checked", "check"}, {"new plant", "new_plant"}, {"log", "log"} }}));
         }
+
+        bot.getApi().sendMessage(query->message->chat->id, query->data);
+
     });
 
 
