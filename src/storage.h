@@ -1,5 +1,7 @@
 #include <cstdlib>
 #include <string>
+#include <vector>
+#include <map>
 
 enum tag_type { plant, action, value, unit, misc };
 
@@ -11,4 +13,3 @@ std::vector<std::map<tag_type, std::string>> logs {
     {{plant, "carotte"}, {action, "planter"}},
     {{plant, "carotte"}, {action, "arroser"}},
 };
-
