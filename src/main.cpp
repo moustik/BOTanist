@@ -112,6 +112,7 @@ void handleTime(Message::Ptr message, Bot &bot){
 
 std::vector<int> lotoNumbers;
 void initLoto(Message::Ptr message, Bot &bot){
+    lotoNumbers.clear();
     for( int i=0; i<90; ++i ){
         lotoNumbers.push_back(i);
     }
@@ -120,14 +121,19 @@ void initLoto(Message::Ptr message, Bot &bot){
     bot.getApi().sendMessage(message->chat->id, "Prêt à jouer ! Utiliser /loto pour tirer les numéros");
 }
 void handleLoto(Message::Ptr message, Bot &bot){
-    bot.getApi().sendMessage(message->chat->id, _format("{}", lotoNumbers.back()));
-    lotoNumbers.pop_back();
+    if(lotoNumbers.empty()){
+        bot.getApi().sendMessage(message->chat->id, "Le loto n'est pas prêt utiliser /lancer_loto pour commencer");
+    }
+    else{
+        bot.getApi().sendMessage(message->chat->id, _format("{}", lotoNumbers.back()));
+        lotoNumbers.pop_back();
+    }
 }
 
 int main() {
     string token(getenv("TOKEN"));
-    srand(time(NULL));
     LOG(debug) << "Token: " << token;
+    srand(time(NULL));
 
     InlineKeyboardMarkup::Ptr keyboard = createChoices({{ {"check", "check"}, {"new plant", "new_plant"}, {"log", "log"} }});
 
