@@ -130,6 +130,14 @@ void handleLoto(Message::Ptr message, Bot &bot){
     }
 }
 
+void handleComplexCommand(Message::Ptr message, Bot &bot){
+    if(StringTools::startsWith(message->text, "/tirage")) {
+        int max = std::stoi(message->text.substr(8));
+        bot.getApi().sendMessage(message->chat->id, _format("{}", rand() % max + 1));
+    }
+}
+
+
 int main() {
     string token(getenv("TOKEN"));
     LOG(debug) << "Token: " << token;
@@ -186,6 +194,8 @@ int main() {
         bot.getApi().sendMessage(query->message->chat->id, query->data);
 
     });
+
+    bot.getEvents().onUnknownCommand([&bot](Message::Ptr message) { handleComplexCommand(message, bot); });
 
 
     signal(SIGINT, [](int s) {
