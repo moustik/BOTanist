@@ -25,8 +25,8 @@ jobs:
       shell: cmd
     - name: configure
       run: |
-          call "%programfiles(x86)%\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
-          cmake -DCMAKE_BUILD_TYPE=Release -G "Visual Studio 16 2019" -A x64 -DCMAKE_PROGRAM_PATH="%programfiles%\Conan\conan" ..
+          env
+          cmake -D CMAKE_BUILD_TYPE=Release -D CMAKE_PROGRAM_PATH="%programfiles%\Conan\conan" ..
       shell: cmd
       working-directory: build
     - name: build
