@@ -24,7 +24,15 @@ if(WIN32)
 endif(WIN32)
 
 add_subdirectory(lib/tgbot-cpp)
-add_executable(botanist src/main.cpp)
+
+set(BOTANIST_SRC_DIR "src")
+list(APPEND BOTANIST_SOURCES
+    ${BOTANIST_SRC_DIR}/simple_commands.cpp
+    ${BOTANIST_SRC_DIR}/telegram_helpers.cpp
+    ${BOTANIST_SRC_DIR}/web.cpp
+    )
+
+add_executable(botanist src/main.cpp ${BOTANIST_SOURCES})
 
 target_compile_options(botanist PUBLIC "-Wall")
 set_property(TARGET botanist PROPERTY CXX_STANDARD 14)
