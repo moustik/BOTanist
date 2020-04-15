@@ -27,6 +27,7 @@ add_subdirectory(lib/tgbot-cpp)
 
 set(BOTANIST_SRC_DIR "src")
 list(APPEND BOTANIST_SOURCES
+    ${BOTANIST_SRC_DIR}/journal.cpp
     ${BOTANIST_SRC_DIR}/simple_commands.cpp
     ${BOTANIST_SRC_DIR}/telegram_helpers.cpp
     ${BOTANIST_SRC_DIR}/web.cpp
