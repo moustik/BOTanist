@@ -17,6 +17,6 @@ size_t cURLWriteFunction(void *ptr, size_t size, size_t nmemb, std::string* data
  *  @param request_url requette HTTP formattee pour le web
  *
  */
-std::string curl_get(std::string request_url);
+std::string curl_get(std::string request_url, std::string data = "");
 
 #endif

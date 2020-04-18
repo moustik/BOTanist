@@ -8,7 +8,7 @@ size_t cURLWriteFunction(void *ptr, size_t size, size_t nmemb, std::string* data
     return size * nmemb;
 }
 
-std::string curl_get(std::string request_url){
+std::string curl_get(std::string request_url, std::string data){
     // from https://gist.github.com/whoshuu/2dc858b8730079602044
     auto curl = curl_easy_init();
 
@@ -20,6 +20,11 @@ std::string curl_get(std::string request_url){
         curl_easy_setopt(curl, CURLOPT_URL, request_url.c_str());
         curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 1L);
         //curl_easy_setopt(curl, CURLOPT_USERPWD, "user:pass");
+
+        if( !data.empty() ) {
+            curl_easy_setopt(curl, CURLOPT_POSTFIELDS, data.c_str());
+            curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, data.length());
+        }
         curl_easy_setopt(curl, CURLOPT_USERAGENT, "curl/7.42.0");
         curl_easy_setopt(curl, CURLOPT_MAXREDIRS, 50L);
         curl_easy_setopt(curl, CURLOPT_TCP_KEEPALIVE, 1L);
@@ -31,12 +36,11 @@ std::string curl_get(std::string request_url){
         char* url;
         long response_code;
         double elapsed;
+
+        curl_easy_perform(curl);
         curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response_code);
         curl_easy_getinfo(curl, CURLINFO_TOTAL_TIME, &elapsed);
         curl_easy_getinfo(curl, CURLINFO_EFFECTIVE_URL, &url);
-
-        curl_easy_perform(curl);
-        LOG(debug) << response_string;
         LOG(debug) << _format("got {} in {} ms", response_code, elapsed);
         curl_easy_cleanup(curl);
         curl = NULL;
