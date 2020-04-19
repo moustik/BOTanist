@@ -10,7 +10,6 @@ using namespace std;
 using namespace TgBot;
 
 #include "log.h"
-#include "storage.h"
 #include "telegram_helpers.h"
 
 #include "simple_commands.h"
