@@ -15,15 +15,23 @@
  * @param word_tags std::vector<nlohmann::json>
  * @param pos_tag VERB NOUN ADV ...
  */
-std::vector<std::string> get_word_of_type(std::vector<nlohmann::json> word_tags, std::string pos_tag)
+std::vector<std::string> get_field_with_property(std::vector<nlohmann::json> word_tags, std::string property, std::string property_name,
+                                                std::string return_field)
 {
     std::vector<nlohmann::json> tagged_type;
     std::vector<std::string> typed_words;
     std::copy_if(word_tags.begin(), word_tags.end(), std::back_inserter(tagged_type),
-                 [pos_tag](auto tag){return tag.value("tag", "").substr(0, tag.value("tag", "").find('_')) == pos_tag; });
-    std::transform(tagged_type.begin(), tagged_type.end(), std::back_inserter(typed_words), [](auto tag){ return tag.value("text", "");});
+                 [property, property_name](auto tag){
+                   return tag.value(property_name, "").substr(0, tag.value(property_name, "").find('_')) == property; });
+    std::transform(tagged_type.begin(), tagged_type.end(), std::back_inserter(typed_words),
+                   [return_field](auto tag){return tag.value(return_field, "");});
 
     return typed_words;
+}
+
+std::vector<std::string> spacyapi_get_word_of_type(std::vector<nlohmann::json> word_tags, std::string tag)
+{
+    return get_field_with_property(word_tags, tag, "tag", "text");
 }
 
 log_type spacyapi_extract(std::string input_log)
@@ -36,22 +44,31 @@ log_type spacyapi_extract(std::string input_log)
     auto spacy_response = nlohmann::json::parse(curl_get("10.8.0.1:8000/dep", spacy_request.dump()));
 
     auto word_tags = spacy_response.at("words");
-    for( auto pos: {"VERB", "NOUN", "ADV"})
-    {
-        LOG(debug) << pos;
-        for( auto word: get_word_of_type(word_tags, pos) )
-        {
-            LOG(debug) << "\t" <<word;
-        }
-    }
 
     log_type description;
-    description[action] = get_word_of_type(word_tags, "VERB").front();
-    description[plant] = get_word_of_type(word_tags, "NOUN").back();
+    description[action] = spacyapi_get_word_of_type(word_tags, "VERB").front();
+    description[plant] = spacyapi_get_word_of_type(word_tags, "NOUN").back();
 
     return description;
 }
 
+log_type spacy_server_extract(std::string input_log)
+{
+    nlohmann::json spacy_request = {
+      {"text", input_log}
+    };
+
+    auto spacy_response = nlohmann::json::parse(curl_get("10.8.0.1:8001/pos", spacy_request.dump()));
+
+    auto word_tags = spacy_response.at("data").at(0).at("tags");
+    LOG(debug) << word_tags;
+
+    log_type description;
+    description[action] = get_field_with_property(word_tags, "VERB", "pos", "lemma").front();
+    description[plant] = get_field_with_property(word_tags, "NOUN", "pos", "lemma").back();
+
+    return description;
+}
 
 void handleLog(TgBot::Message::Ptr message, TgBot::Bot &bot){
     if(message->text.length() < std::string("log").length() + 2)
@@ -59,9 +76,11 @@ void handleLog(TgBot::Message::Ptr message, TgBot::Bot &bot){
     std::string input_log = message->text.substr(std::string("log").length() + 2);
 
     std::string response;
-    log_type extract = spacyapi_extract(input_log);
+    //log_type extract = spacyapi_extract(input_log);
+    log_type extract = spacy_server_extract(input_log);
 
     response = _format("(action: {}, plant: {})", extract.at(action), extract.at(plant));
+    LOG(debug) << response;
 
     // escape for Markdown
     for(auto escape: {'_', '*', '[', ']', '(', ')', '~', '`', '>', '#', '+', '-', '=', '|', '{', '}', '.', '!'}){
