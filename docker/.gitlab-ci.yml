@@ -1,0 +1,20 @@
+image: docker:latest
+
+services:
+  - docker:dind
+
+stages:
+  - build
+  - push
+
+build:
+  stage: build
+  script:
+    - docker build -t registry.gitlab.szchmop.net/moustik/botanist:${CI_COMMIT_SHORT_SHA} docker
+    
+push_latest:
+  stage: push
+  script:
+    - echo -n ${CI_JOB_TOKEN} | docker login -u ${CI_DEPLOY_USER} --password-stdin registry.gitlab.szchmop.net
+    - docker tag registry.gitlab.szchmop.net/moustik/botanist:${CI_COMMIT_SHORT_SHA} registry.gitlab.szchmop.net/moustik/botanist:latest
+    - docker push registry.gitlab.szchmop.net/moustik/botanist:latest
