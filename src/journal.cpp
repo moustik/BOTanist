@@ -11,9 +11,21 @@
 
 #include "storage.h"
 
+
+std::string escape_for_md(std::string to_be_escaped){
+    std::string escaped = to_be_escaped;
+    for(auto escape: {'_', '*', '(', ')', '~', '`', '>', '#', '+', '-', '=', '|', '{', '}', '.', '!'}){
+        escaped = std::regex_replace(escaped, std::regex(_format("[{}]", escape)), _format("\\{}", escape));
+    }
+
+    return escaped;
+}
+
 /** Return a list of word with given POS-tag
  * @param word_tags std::vector<nlohmann::json>
- * @param pos_tag VERB NOUN ADV ...
+ * @param property property value to be check against
+ * @param property_name will be searched in the word_tag element
+ * @param return_field property to be returned
  */
 std::vector<std::string> get_field_with_property(std::vector<nlohmann::json> word_tags, std::string property, std::string property_name,
                                                 std::string return_field)
@@ -61,7 +73,6 @@ log_type spacy_server_extract(std::string input_log)
     auto spacy_response = nlohmann::json::parse(curl_get("10.8.0.1:8001/pos", spacy_request.dump()));
 
     auto word_tags = spacy_response.at("data").at(0).at("tags");
-    LOG(debug) << word_tags;
 
     log_type description;
     description[action] = get_field_with_property(word_tags, "VERB", "pos", "lemma").front();
@@ -80,20 +91,42 @@ void handleLog(TgBot::Message::Ptr message, TgBot::Bot &bot){
     log_type extract = spacy_server_extract(input_log);
 
     response = _format("(action: {}, plant: {})", extract.at(action), extract.at(plant));
-    LOG(debug) << response;
-
-    // escape for Markdown
-    for(auto escape: {'_', '*', '[', ']', '(', ')', '~', '`', '>', '#', '+', '-', '=', '|', '{', '}', '.', '!'}){
-        response = std::regex_replace(response, std::regex(_format("[{}]", escape)), _format("\\{}", escape));
-    }
 
     auto keyboard = createChoices({
         //{{"Ce n'était pas *aujourd'hui*", "date_today"}},
-        {{_format("Je n'ai pas *{}*", extract[action]), _format("fix_action_{}_{}", extract[action], message->messageId) }},
-        {{_format("Ce ne sont pas des *{}*", extract[plant]), _format("fix_plant_{}_{}", extract[plant], message->messageId) }},
-        {{"C'est tout bon !", _format("valid_{}", message->messageId) }}
+        {{_format("Je n'ai pas *{}*", extract[action]), _format("log_fix_action_{}_{}", extract[action], message->messageId) }},
+        {{_format("Ce ne sont pas des *{}*", extract[plant]), _format("log_fix_plant_{}_{}", extract[plant], message->messageId) }},
+        {{"C'est tout bon !", _format("log_valid_{}", message->messageId) }}
       });
-    bot.getApi().sendMessage(message->chat->id, response, false, 0, keyboard, "MarkdownV2");
+    bot.getApi().sendMessage(message->chat->id, escape_for_md(response), false, 0, keyboard, "MarkdownV2");
+}
+
+
+void handleViewLog(TgBot::Message::Ptr message, TgBot::Bot &bot){
+    std::stringstream response;
+    response << std::right << std::setw(10) << "plante" << std::setw(15) << "action"  << std::endl;
+    response << std::setfill('-') << std::setw(25) << "" << std::endl << std::setfill(' ');
+    for(auto line: logs){
+        std::string log_action = line[action];
+        std::string log_plant = line[plant];
+        response << std::setw(10) << log_plant << std::setw(15) << log_action  << std::endl;
+    }
+
+    bot.getApi().sendMessage(message->chat->id, "```" + escape_for_md(response.str()) + "```", false, 0,
+                             NULL, "MarkdownV2");
+}
+
+void logCallbackQuery(TgBot::CallbackQuery::Ptr query, TgBot::Bot &bot){
+//    bot.getApi().editMessageText("YES!", query->message->chat->id, query->message->messageId, "",
+//                                 "Markdown", false,
+//                                 createChoices({{ {"checked", "check"}, {"new plant", "new_plant"}, {"log", "log"} }}));
+    LOG(debug) << "chatInstance >> \t " << query->chatInstance;
+    LOG(debug) << "data >> \t " << query->data;
+    LOG(debug) << "id >> \t " << query->id;
+    LOG(debug) << "inlineMessageId >> \t " << query->inlineMessageId;
+    LOG(debug) << "message >> \t " << query->message;
+    LOG(debug) << "message id >>  \t" << query->message->messageId;
+    LOG(debug) << "message text >>  \t" << query->message->text;
 }
 
 void handleCheck(TgBot::Message::Ptr message, TgBot::Bot &bot){

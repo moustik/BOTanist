@@ -40,11 +40,24 @@ void handleCallbackQueries(CallbackQuery::Ptr query, Bot &bot){
      if (StringTools::startsWith(query->data, "check")) {
          checkCallbackQuery(query, bot);
      }
+     else if (StringTools::startsWith(query->data, "log")) {
+         logCallbackQuery(query, bot);
+     }
 
      bot.getApi().sendMessage(query->message->chat->id, query->data);
 }
 
 
+//////////////////////////////////////////////
+/*
+Super class bot
+ > register
+    - complex commands
+    - commands
+    - callbacks
+
+*/
+///////////////////////////////////////////
 int main() {
     srand(time(NULL));
 
@@ -54,20 +67,21 @@ int main() {
     Bot bot(token);
 
 
-    bot.getEvents().onAnyMessage([&bot](Message::Ptr message) { handleMessage(message, bot); });
-    bot.getEvents().onUnknownCommand([&bot](Message::Ptr message) { handleComplexCommand(message, bot); });
-    bot.getEvents().onCallbackQuery([&bot](CallbackQuery::Ptr query) { handleCallbackQueries(query, bot); });
+    bot.getEvents().onAnyMessage([&bot](Message::Ptr message)             { handleMessage(message, bot); });
+    bot.getEvents().onUnknownCommand([&bot](Message::Ptr message)         { handleComplexCommand(message, bot); });
+    bot.getEvents().onCallbackQuery([&bot](CallbackQuery::Ptr query)      { handleCallbackQueries(query, bot); });
 
-    bot.getEvents().onCommand("start", [&bot](Message::Ptr message) { handleStart(message, bot); });
+    bot.getEvents().onCommand("start", [&bot](Message::Ptr message)       { handleStart(message, bot); });
 
-    bot.getEvents().onCommand("time", [&bot](Message::Ptr message) { handleTime(message, bot); });
+    bot.getEvents().onCommand("time", [&bot](Message::Ptr message)        { handleTime(message, bot); });
 
     bot.getEvents().onCommand("lancer_loto", [&bot](Message::Ptr message) { initLoto(message, bot); });
-    bot.getEvents().onCommand("loto", [&bot](Message::Ptr message) { handleLoto(message, bot); });
-    bot.getEvents().onCommand("tirage", [&bot](Message::Ptr message) { handleLoto(message, bot); });
+    bot.getEvents().onCommand("loto", [&bot](Message::Ptr message)        { handleLoto(message, bot); });
+    bot.getEvents().onCommand("tirage", [&bot](Message::Ptr message)      { handleLoto(message, bot); });
 
-    bot.getEvents().onCommand("log", [&bot](Message::Ptr message) { handleLog(message, bot); });
-    bot.getEvents().onCommand("check", [&bot](Message::Ptr message) { handleCheck(message, bot); });
+    bot.getEvents().onCommand("log", [&bot](Message::Ptr message)         { handleLog(message, bot); });
+    bot.getEvents().onCommand("view", [&bot](Message::Ptr message)        { handleViewLog(message, bot); });
+    bot.getEvents().onCommand("check", [&bot](Message::Ptr message)       { handleCheck(message, bot); });
 
 
     signal(SIGINT, [](int s) {
