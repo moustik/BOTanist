@@ -2,6 +2,7 @@
 
 #include <string>
 #include <regex>
+#include <tuple>
 
 #include <nlohmann/json.hpp>
 
@@ -91,6 +92,7 @@ void handleLog(TgBot::Message::Ptr message, TgBot::Bot &bot){
     log_type extract = spacy_server_extract(input_log);
 
     response = _format("(action: {}, plant: {})", extract.at(action), extract.at(plant));
+    raw_data_index[message->messageId] = std::make_tuple(message->messageId, input_log, extract);
 
     auto keyboard = createChoices({
         //{{"Ce n'était pas *aujourd'hui*", "date_today"}},
@@ -120,13 +122,17 @@ void logCallbackQuery(TgBot::CallbackQuery::Ptr query, TgBot::Bot &bot){
 //    bot.getApi().editMessageText("YES!", query->message->chat->id, query->message->messageId, "",
 //                                 "Markdown", false,
 //                                 createChoices({{ {"checked", "check"}, {"new plant", "new_plant"}, {"log", "log"} }}));
-    LOG(debug) << "chatInstance >> \t " << query->chatInstance;
-    LOG(debug) << "data >> \t " << query->data;
-    LOG(debug) << "id >> \t " << query->id;
-    LOG(debug) << "inlineMessageId >> \t " << query->inlineMessageId;
-    LOG(debug) << "message >> \t " << query->message;
-    LOG(debug) << "message id >>  \t" << query->message->messageId;
-    LOG(debug) << "message text >>  \t" << query->message->text;
+
+    if(StringTools::startsWith(query->data, "log_valid")){
+        int messageId = std::stoi(query->data.substr(std::string("log_valid").size()+1));
+        LOG(debug) << "message id gotten " << messageId;
+        auto data = raw_data_index.at(messageId);
+        raw_data.push_back(data);
+        logs.push_back(std::get<2>(data));
+
+        bot.getApi().editMessageReplyMarkup(query->message->chat->id, query->message->messageId);
+        bot.getApi().sendMessage(query->message->chat->id, "C'est noté !");
+    }
 }
 
 void handleCheck(TgBot::Message::Ptr message, TgBot::Bot &bot){

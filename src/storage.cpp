@@ -8,3 +8,6 @@ std::vector<log_type> logs = {
 
 std::vector<std::string> plant_list = std::vector<std::string>({"carotte", "banane"});
 std::vector<std::string> action_list = std::vector<std::string>({"planter", "arroser", "ramasser"});
+
+std::vector<raw_datum> raw_data;
+std::map<int, raw_datum> raw_data_index;
