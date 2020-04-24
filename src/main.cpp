@@ -4,6 +4,9 @@
 #include <cstdlib>
 #include <vector>
 #include <string>
+#include <ctime>
+#include <iomanip>
+
 
 #include <tgbot/tgbot.h>
 using namespace std;
@@ -86,6 +89,12 @@ int main() {
 
     signal(SIGINT, [](int s) {
         LOG(debug) << "got SIGINT\nExiting ...";
+
+        std::time_t t = std::time(nullptr);
+        std::stringstream data_dump_filename;
+        data_dump_filename << "data_dump_" << std::put_time(std::localtime(&t), "%Y%m%d_%H%M%S") << ".json";
+        LOG(debug) << "dumping learning data to " << data_dump_filename.str();
+        dump_log_data(data_dump_filename.str());
         exit(0);
     });
 

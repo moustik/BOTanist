@@ -4,6 +4,7 @@
 #include <map>
 
 enum tag_type { plant, action, value, unit, misc };
+extern std::vector<std::string> tag_type_str;
 
 extern std::vector<std::string> plant_list;
 extern std::vector<std::string> action_list;

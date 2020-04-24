@@ -146,3 +146,22 @@ void checkCallbackQuery(TgBot::CallbackQuery::Ptr query, TgBot::Bot &bot){
                                  "Markdown", false,
                                  createChoices({{ {"checked", "check"}, {"new plant", "new_plant"}, {"log", "log"} }}));
 }
+
+
+void dump_log_data(std::string filename){
+    std::ofstream o(filename);
+    nlohmann::json j;
+
+    for(auto datum: raw_data){
+        nlohmann::json jlog;
+        for( auto const& [key, val] : std::get<2>(datum) ){
+            jlog[tag_type_str[key]] = val;
+        }
+
+        j.push_back({
+            {"input_string", std::get<1>(datum)},
+            {"log_entry", jlog}
+        });
+    }
+    o << std::setw(4) << j << std::endl;
+}
