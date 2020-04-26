@@ -91,9 +91,10 @@ int main() {
         LOG(debug) << "got SIGINT\nExiting ...";
 
         std::time_t t = std::time(nullptr);
+        string dump_dir(getenv("DUMP_DIR") ? getenv("DUMP_DIR") : ".");
         std::stringstream data_dump_filename;
-        data_dump_filename << "data_dump_" << std::put_time(std::localtime(&t), "%Y%m%d_%H%M%S") << ".json";
-        LOG(debug) << "dumping learning data to " << data_dump_filename.str();
+        data_dump_filename << dump_dir << "/" << "data_dump_" << std::put_time(std::localtime(&t), "%Y%m%d_%H%M%S") << ".json";
+        LOG(info) << "dumping learning data to " << data_dump_filename.str();
         dump_log_data(data_dump_filename.str());
         exit(0);
     });
