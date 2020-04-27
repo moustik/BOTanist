@@ -1,10 +1,20 @@
 #include "simple_commands.h"
 
+#include <random>
+#include <algorithm>
+
 #include <nlohmann/json.hpp>
 
 #include "telegram_helpers.h"
 #include "web.h"
 #include "log.h"
+
+// return an integral random number in the range 0 - (n - 1)
+int Rand(int n)
+{
+    return rand() % n ;
+}
+
 
 void handleStart(Message::Ptr message, Bot &bot){
     InlineKeyboardMarkup::Ptr keyboard = createChoices({{ {"check", "check"}, {"new plant", "new_plant"}, {"log", "log"} }});
@@ -32,7 +42,11 @@ void initLoto(Message::Ptr message, Bot &bot){
     for( int i=0; i<90; ++i ){
         lotoNumbers.push_back(i);
     }
-    std::random_shuffle(lotoNumbers.begin(), lotoNumbers.end());
+
+    std::random_device rd;
+    std::mt19937 g(rd());
+
+    std::shuffle(lotoNumbers.begin(), lotoNumbers.end(), g);
 
     bot.getApi().sendMessage(message->chat->id, "Prêt à jouer ! Utiliser /loto pour tirer les numéros");
 }

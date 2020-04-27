@@ -37,7 +37,7 @@ list(APPEND BOTANIST_SOURCES
 add_executable(botanist src/main.cpp ${BOTANIST_SOURCES})
 
 target_compile_options(botanist PUBLIC "-Wall")
-set_property(TARGET botanist PROPERTY CXX_STANDARD 14)
+set_property(TARGET botanist PROPERTY CXX_STANDARD 17)
 set_property(TARGET botanist PROPERTY CXX_STANDARD_REQUIRED ON)
 
 target_link_libraries(botanist TgBot ${CONAN_TARGETS})
