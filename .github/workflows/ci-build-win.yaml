@@ -30,8 +30,7 @@ jobs:
       shell: cmd
       working-directory: build
     - name: build
-      run: cmake --build .
+      run: cmake --build . --config Release
       working-directory: build
 
 # for windows build https://github.com/Chatterino/chatterino2/blob/master/.github/workflows/build.yml
-
