@@ -8,10 +8,15 @@ RUN wget https://dl.bintray.com/conan/installers/conan-ubuntu-64_1_24_0.deb
 RUN dpkg -i conan-ubuntu-64_1_24_0.deb
 
 WORKDIR /root/
-RUN git clone --recurse-submodules https://github.com/moustik/BOTanist.git botanist
+RUN git clone --recurse-submodules https://gitlab.szchmop.net/moustik/BOTanist.git botanist
+# get some conan cache
+RUN mkdir -p /root/botanist/build
+RUN cd /root/botanist/build && CXX=clang++ cmake ../ -DCMAKE_BUILD_TYPE=Release
 
 WORKDIR /root/botanist
-RUN mkdir build
+ARG COMMIT=""
+ENV COMMIT_SHA=${COMMIT}
+RUN git fetch origin ${COMMIT_SHA} && git checkout FETCH_HEAD && git submodule update --init --recursive
 
 WORKDIR /root/botanist/build
 RUN CXX=clang++ cmake ../ -DCMAKE_BUILD_TYPE=Release
@@ -20,6 +25,9 @@ RUN cpack .
 
 
 FROM debian:stable-slim
+
+ARG COMMIT=""
+LABEL commit=${COMMIT}
 
 WORKDIR /root/
 COPY --from=build /root/botanist/build/botanist*tar.gz .

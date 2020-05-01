@@ -10,8 +10,8 @@ stages:
 build:
   stage: build
   script:
-    - docker build -t registry.gitlab.szchmop.net/moustik/botanist:${CI_COMMIT_SHORT_SHA} docker
-    
+    - docker build -t registry.gitlab.szchmop.net/moustik/botanist:${CI_COMMIT_SHORT_SHA} --build-arg=COMMIT=${CI_COMMIT_SHA} docker
+
 push_latest:
   stage: push
   script:
