@@ -75,6 +75,7 @@ int main() {
     bot.getEvents().onCallbackQuery([&bot](CallbackQuery::Ptr query)      { handleCallbackQueries(query, bot); });
 
     bot.getEvents().onCommand("start", [&bot](Message::Ptr message)       { handleStart(message, bot); });
+    bot.getEvents().onCommand("version", [&bot](Message::Ptr message)       { handleVersion(message, bot); });
 
     bot.getEvents().onCommand("time", [&bot](Message::Ptr message)        { handleTime(message, bot); });
 

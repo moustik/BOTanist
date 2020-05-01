@@ -12,6 +12,8 @@ if(NOT EXISTS "${CMAKE_BINARY_DIR}/conan.cmake")
 endif()
 include(${CMAKE_BINARY_DIR}/conan.cmake)
 
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 set(CMAKE_INSTALL_RPATH "$ORIGIN/../lib")
 set(CMAKE_BUILD_WITH_INSTALL_RPATH ON)
 
@@ -33,6 +35,33 @@ list(APPEND BOTANIST_SOURCES
     ${BOTANIST_SRC_DIR}/web.cpp
     )
 
+find_package(Git)
+# the commit's SHA1, and whether the building workspace was dirty or not
+execute_process(COMMAND
+  "${GIT_EXECUTABLE}" describe --match=NeVeRmAtCh --always --abbrev=12 --dirty
+  WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
+  OUTPUT_VARIABLE GIT_SHA1
+  ERROR_QUIET OUTPUT_STRIP_TRAILING_WHITESPACE)
+
+# the date of the commit
+execute_process(COMMAND
+  "${GIT_EXECUTABLE}" log -1 --format=%ad --date=local
+  WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
+  OUTPUT_VARIABLE GIT_DATE
+  ERROR_QUIET OUTPUT_STRIP_TRAILING_WHITESPACE)
+
+# the subject of the commit
+execute_process(COMMAND
+  "${GIT_EXECUTABLE}" log -1 --format=%s
+  WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
+  OUTPUT_VARIABLE GIT_COMMIT_SUBJECT
+  ERROR_QUIET OUTPUT_STRIP_TRAILING_WHITESPACE)
+
+# generate version.cc
+configure_file("${CMAKE_CURRENT_SOURCE_DIR}/version.cc.in" "${CMAKE_CURRENT_BINARY_DIR}/version.cpp" @ONLY)
+
+list(APPEND BOTANIST_SOURCES "${CMAKE_CURRENT_BINARY_DIR}/version.cpp")
+
 add_executable(botanist src/main.cpp ${BOTANIST_SOURCES})
 
 #target_compile_options(botanist PUBLIC "-Wall")
@@ -40,6 +69,7 @@ add_executable(botanist src/main.cpp ${BOTANIST_SOURCES})
 set_property(TARGET botanist PROPERTY CXX_STANDARD 17)
 set_property(TARGET botanist PROPERTY CXX_STANDARD_REQUIRED ON)
 
+target_include_directories(botanist PRIVATE ${BOTANIST_SRC_DIR})
 target_link_libraries(botanist TgBot ${CONAN_TARGETS})
 
 install(TARGETS botanist

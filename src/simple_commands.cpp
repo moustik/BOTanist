@@ -5,6 +5,7 @@
 
 #include <nlohmann/json.hpp>
 
+#include "version.h"
 #include "telegram_helpers.h"
 #include "web.h"
 #include "log.h"
@@ -19,6 +20,14 @@ int Rand(int n)
 void handleStart(Message::Ptr message, Bot &bot){
     InlineKeyboardMarkup::Ptr keyboard = createChoices({{ {"check", "check"}, {"new plant", "new_plant"}, {"log", "log"} }});
     bot.getApi().sendMessage(message->chat->id, "Hi!", false, 0, keyboard);
+}
+
+void handleVersion(Message::Ptr message, Bot &bot){
+    bot.getApi().sendMessage(message->chat->id,
+                             _format("Running {} from {}\n{}",
+                                     botanist::version::GIT_SHA1,
+                                     botanist::version::GIT_DATE,
+                                     botanist::version::GIT_COMMIT_SUBJECT));
 }
 
 void handleTime(Message::Ptr message, Bot &bot){

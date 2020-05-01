@@ -9,6 +9,7 @@ using namespace TgBot;
 
 
 void handleStart(Message::Ptr message, Bot &bot);
+void handleVersion(Message::Ptr message, Bot &bot);
 
 void handleTime(Message::Ptr message, Bot &bot);
 
