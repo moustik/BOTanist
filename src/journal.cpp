@@ -1,5 +1,6 @@
 #include "journal.h"
 
+#include <array>
 #include <string>
 #include <regex>
 #include <tuple>
@@ -128,10 +129,41 @@ void logCallbackQuery(TgBot::CallbackQuery::Ptr query, TgBot::Bot &bot){
         LOG(debug) << "message id gotten " << messageId;
         auto data = raw_data_index.at(messageId);
         raw_data.push_back(data);
+        auto extract = std::get<2>(data);
         logs.push_back(std::get<2>(data));
+        raw_data_index.erase(messageId);
 
         bot.getApi().editMessageReplyMarkup(query->message->chat->id, query->message->messageId);
         bot.getApi().sendMessage(query->message->chat->id, "C'est noté !");
+    }
+    else if(StringTools::startsWith(query->data, "log_fix")){
+      std::array<std::string, 5> string_query;
+      int i = 0;
+      for( auto e: StringTools::split(query->data, '_'))
+      {
+          string_query[i++] = e;
+      }
+      auto [_,__, type, value, messageId] = string_query;
+      raw_datum data;
+      try{
+        data = raw_data_index.at(std::stoi(messageId));
+      }
+      catch(const std::exception& e){return;}
+
+      std::get<2>(data)[plant] = value+"u";
+      raw_data_index[std::stoi(messageId)] = data;
+
+      auto extract = std::get<2>(data);
+      std::string response = _format("(action: {}, plant: {})", extract.at(action), extract.at(plant));
+
+      auto keyboard = createChoices({
+          //{{"Ce n'était pas *aujourd'hui*", "date_today"}},
+          {{_format("Je n'ai pas *{}*", extract[action]), _format("log_fix_action_{}_{}", extract[action], messageId) }},
+          {{_format("Ce ne sont pas des *{}*", extract[plant]), _format("log_fix_plant_{}_{}", extract[plant], messageId) }},
+          {{"C'est tout bon !", _format("log_valid_{}", messageId) }}
+        });
+      bot.getApi().sendMessage(query->message->chat->id, escape_for_md(response), false, 0, keyboard, "MarkdownV2");
+
     }
 }
 
