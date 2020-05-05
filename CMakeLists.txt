@@ -28,6 +28,7 @@ target_link_libraries(TgBot CONAN_PKG::boost)
 
 set(BOTANIST_SRC_DIR "src")
 list(APPEND BOTANIST_SOURCES
+    ${BOTANIST_SRC_DIR}/botanist.cpp
     ${BOTANIST_SRC_DIR}/journal.cpp
     ${BOTANIST_SRC_DIR}/simple_commands.cpp
     ${BOTANIST_SRC_DIR}/storage.cpp
