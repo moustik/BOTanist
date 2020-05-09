@@ -21,6 +21,7 @@ std::vector<std::pair<std::string, std::function<void(TgBot::Message::Ptr, TgBot
   {"version", handleVersion},
 
   {"time", handleTime},
+  {"meteo", handleMeteo},
 
   {"lancer_loto", initLoto},
   {"loto", handleLoto},
