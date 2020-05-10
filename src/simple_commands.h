@@ -13,6 +13,9 @@ void handleVersion(Message::Ptr message, Bot &bot);
 
 void handleTime(Message::Ptr message, Bot &bot);
 
+void handleMeteo(Message::Ptr message, Bot &bot);
+//void handlePluie(Message::Ptr message, Bot &bot);
+
 void initLoto(Message::Ptr message, Bot &bot);
 void handleLoto(Message::Ptr message, Bot &bot);
 
