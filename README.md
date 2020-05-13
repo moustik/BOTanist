@@ -6,13 +6,6 @@
 
 See https://docs.conan.io/en/latest/installation.html
 
-### Add new remotes
-
-```sh
-conan remote add community https://api.bintray.com/conan/conan-community/conan
-conan remote add bincrafters https://api.bintray.com/conan/bincrafters/public-conan
-```
-
 # Build
 
 ```sh
@@ -24,6 +17,18 @@ cmake -DCMAKE_BUILD_TYPE=Release ..
 
 ```sh
 TOKEN=XXXXXXXX ./build/bin/botanist
+```
+
+# Run in docker for dev
+
+
+boty image should not be pushed to prod
+```sh
+# prepare container
+docker build -t boty -f Dockerfile.dev .
+
+# start container
+docker run --rm -it -e TOKEN=XXXXXXXX boty
 ```
 
 # Resources

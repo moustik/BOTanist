@@ -1,0 +1,37 @@
+FROM debian:stable-slim as build
+
+RUN apt-get update \
+  && apt-get install -y make libc-dev binutils cmake clang git wget \
+  && rm -rf /var/lib/apt/lists/*
+
+RUN wget https://dl.bintray.com/conan/installers/conan-ubuntu-64_1_24_0.deb
+RUN dpkg -i conan-ubuntu-64_1_24_0.deb
+
+
+# get some conan cache
+RUN mkdir -p /root/botanist/build-docker
+COPY conanfile.txt /root/botanist
+WORKDIR /root/botanist/build-docker
+RUN conan install -s build_type=Release --build=missing -s compiler=clang -s compiler.version=7.0 -s compiler.libcxx=libstdc++11 ..
+
+# bring the rest of the source and build
+COPY . /root/botanist
+RUN CXX=clang++ cmake ../ -DCMAKE_BUILD_TYPE=Release
+RUN cmake --build .
+RUN cpack .
+
+
+FROM debian:stable-slim
+
+ARG COMMIT=""
+LABEL commit=${COMMIT}
+
+COPY --from=build /root/botanist/build-docker/botanist*tar.gz .
+RUN mkdir code
+RUN tar xf botanist*tar.gz -C code
+
+# import root certificates
+COPY docker/cacert.pem /code
+
+WORKDIR /code
+CMD ["./botanist-0.1.1-Linux/bin/botanist"]

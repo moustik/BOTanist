@@ -29,8 +29,12 @@ FROM debian:stable-slim
 ARG COMMIT=""
 LABEL commit=${COMMIT}
 
-WORKDIR /root/
 COPY --from=build /root/botanist/build/botanist*tar.gz .
-RUN tar xf botanist*tar.gz
+RUN mkdir /code
+RUN tar xf botanist*tar.gz -C /code
 
+# import root certificates
+COPY cacert.pem /code
+
+WORKDIR /code/
 CMD ["./botanist-0.1.1-Linux/bin/botanist"]
